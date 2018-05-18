@@ -11,7 +11,7 @@ import java.time.LocalDate;
 @Setter
 @AllArgsConstructor
 @ToString
-public class DateRowRange {
+public class Date {
     private LocalDate date;
     private int firstRow;
     private int lastRow;
