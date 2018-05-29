@@ -22,6 +22,10 @@ public class DataParser {
     private Map<Date, List<Hour>> hours = new HashMap<>();
     private List<Lecture> lectures = new ArrayList<>();
 
+    public List<Date> getDates() {
+        return dates;
+    }
+
     public DataParser(Sheet sheet) {
         this.sheet = sheet;
         mergedRegions = sheet.getMergedRegions();
@@ -32,7 +36,7 @@ public class DataParser {
         parseGroups();
         parseHours();
         parseLectures();
-        showResults();
+//        showResults();
     }
 
     private void showResults() {
@@ -145,6 +149,7 @@ public class DataParser {
                                 lectures.add(lecture);
                             }
                             else {
+                                System.out.println(value);
 //                                throw new RuntimeException("Lecture is not in the merged regions, probably contains only one cell. Ensure that is correct size. Cell value: " + value);
                             }
                         }
