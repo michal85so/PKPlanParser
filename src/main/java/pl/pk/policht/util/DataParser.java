@@ -145,7 +145,7 @@ public class DataParser {
                                 lectures.add(lecture);
                             }
                             else {
-                                throw new RuntimeException("Lecture is not in the merged regions, probably contains only one cell. Ensure that is correct size. Cell value: " + value);
+//                                throw new RuntimeException("Lecture is not in the merged regions, probably contains only one cell. Ensure that is correct size. Cell value: " + value);
                             }
                         }
                     }
