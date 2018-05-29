@@ -48,14 +48,14 @@ public class DataParser {
             Cell cell = row.getCell(0);
             if (cell != null && CellType.NUMERIC.getCode() == cell.getCellType()) {
                 LocalDate localDate = cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-                Optional<CellRangeAddress> rangeAddress = checkIsInMergedRowRegions(row.getRowNum());
+                Optional<CellRangeAddress> rangeAddress = checkDateIsInMergedRowRegions(row.getRowNum());
                 rangeAddress.ifPresent(address -> dates.add(new Date(localDate, address.getFirstRow(), address.getLastRow())));
             }
 
         }
     }
 
-    private Optional<CellRangeAddress> checkIsInMergedRowRegions(int row) {
+    private Optional<CellRangeAddress> checkDateIsInMergedRowRegions(int row) {
         return mergedRegions.parallelStream()
                 .filter(region ->
                         0 == region.getFirstColumn()
@@ -113,7 +113,6 @@ public class DataParser {
                 Row row = sheet.getRow(hourCurrentRow);
                 Cell cell = row.getCell(columnWithHours);
                 hours.get(date).add(new Hour(cell.getStringCellValue(), hourCurrentRow));
-//                date.getHours().add(new Hour(cell.getStringCellValue(), hourCurrentRow));
             }
         }
     }
@@ -146,7 +145,7 @@ public class DataParser {
                                 lectures.add(lecture);
                             }
                             else {
-
+                                throw new RuntimeException("Lecture is not in the merged regions, probably contains only one cell. Ensure that is correct size. Cell value: " + value);
                             }
                         }
                     }
