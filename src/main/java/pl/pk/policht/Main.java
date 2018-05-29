@@ -8,8 +8,8 @@ public class Main {
         FileConnector connector = new FileConnector();
         Sheet sheet = connector.connectAndGetSheet();
 
-        StaticDataParser staticDataParser = new StaticDataParser(sheet);
-        staticDataParser.parse();
+        DataParser dataParser = new DataParser(sheet);
+        dataParser.parse();
 
 
 

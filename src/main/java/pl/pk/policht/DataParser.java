@@ -14,7 +14,7 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 
-public class StaticDataParser {
+public class DataParser {
     private Sheet sheet;
     private List<CellRangeAddress> mergedRegions;
     private List<Date> dates = new ArrayList<>();
@@ -22,7 +22,7 @@ public class StaticDataParser {
     private Map<Date, List<Hour>> hours = new HashMap<>();
     private List<Lecture> lectures = new ArrayList<>();
 
-    public StaticDataParser(Sheet sheet) {
+    public DataParser(Sheet sheet) {
         this.sheet = sheet;
         mergedRegions = sheet.getMergedRegions();
     }
@@ -76,8 +76,8 @@ public class StaticDataParser {
         int groupRow = dates.get(0).getFirstRow() - 1;
         Row row = sheet.getRow(groupRow);
         int emptyColumnCounter = 0;
-        for (int i = 0;;i++) {
-            Cell cell = row.getCell(i);
+        for (int currentColumn = 0;; currentColumn++) {
+            Cell cell = row.getCell(currentColumn);
             if (cell == null) {
                 emptyColumnCounter++;
                 if (emptyColumnCounter == 5)
@@ -106,13 +106,14 @@ public class StaticDataParser {
     }
 
     private void parseHours() {
+        final int columnWithHours = 1;
         for (Date date : dates) {
             hours.put(date, new ArrayList<>());
-            for (int i = date.getFirstRow(); i <= date.getLastRow(); i++) {
-                Row row = sheet.getRow(i);
-                Cell cell = row.getCell(1);
-                hours.get(date).add(new Hour(cell.getStringCellValue(), i));
-//                date.getHours().add(new Hour(cell.getStringCellValue(), i));
+            for (int hourCurrentRow = date.getFirstRow(); hourCurrentRow <= date.getLastRow(); hourCurrentRow++) {
+                Row row = sheet.getRow(hourCurrentRow);
+                Cell cell = row.getCell(columnWithHours);
+                hours.get(date).add(new Hour(cell.getStringCellValue(), hourCurrentRow));
+//                date.getHours().add(new Hour(cell.getStringCellValue(), hourCurrentRow));
             }
         }
     }
@@ -120,25 +121,25 @@ public class StaticDataParser {
     private void parseLectures() {
         for (Date date : dates) {
             for (Group group : groups) {
-                for (int i = group.getFirstCol(); i <= group.getLastCol(); i++) {
-                    for (int j = date.getFirstRow(); j <= date.getLastRow(); j++) {
-                        Row row = sheet.getRow(j);
-                        Cell cell = row.getCell(i);
+                for (int groupCurrentColumn = group.getFirstCol(); groupCurrentColumn <= group.getLastCol(); groupCurrentColumn++) {
+                    for (int dateCurrentRow = date.getFirstRow(); dateCurrentRow <= date.getLastRow(); dateCurrentRow++) {
+                        Row row = sheet.getRow(dateCurrentRow);
+                        Cell cell = row.getCell(groupCurrentColumn);
                         if (cell == null)
                             continue;
                         String value = cell.getStringCellValue();
                         if (value != null && !value.isEmpty()) {
-                            Optional<CellRangeAddress> mergedRegion = checkIsInMergedColumnRegions(j, i);
+                            Optional<CellRangeAddress> mergedRegion = checkIsInMergedColumnRegions(dateCurrentRow, groupCurrentColumn);
                             if (mergedRegion.isPresent()) {
                                 Lecture lecture = new Lecture(value);
                                 CellRangeAddress region = mergedRegion.get();
-                                for (int k = region.getFirstRow(); k <= region.getLastRow(); k++) {
-                                    Hour hour = hours.get(date).get(k - j);
+                                for (int regionCurrentRow = region.getFirstRow(); regionCurrentRow <= region.getLastRow(); regionCurrentRow++) {
+                                    Hour hour = hours.get(date).get(regionCurrentRow - dateCurrentRow);
                                     lecture.getHours().add(hour);
                                 }
-                                for (int k = region.getFirstColumn(); k <= region.getLastColumn(); k++) {
+                                for (int regionCurrentColumn = region.getFirstColumn(); regionCurrentColumn <= region.getLastColumn(); regionCurrentColumn++) {
                                     for (Group innerGroup : groups) {
-                                        if (k >= innerGroup.getFirstCol() && k <= innerGroup.getLastCol())
+                                        if (regionCurrentColumn >= innerGroup.getFirstCol() && regionCurrentColumn <= innerGroup.getLastCol())
                                             lecture.getGroups().add(innerGroup);
                                     }
                                 }
