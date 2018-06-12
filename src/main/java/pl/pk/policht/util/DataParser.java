@@ -43,12 +43,13 @@ public class DataParser {
     }
 
     private void showResults() {
-        dates.stream().forEach(logger::debug);
-        groups.stream().forEach(logger::debug);
-        lectures.stream().forEach(logger::debug);
-        hours.values().stream().forEach(logger::warn);
+        dates.forEach(logger::debug);
+        groups.forEach(logger::debug);
+        lectures.forEach(logger::debug);
+        hours.values().forEach(logger::warn);
     }
 
+    @SuppressWarnings("deprecation")
     private void parseDates() {
         for (int i = 0; i < sheet.getPhysicalNumberOfRows(); i++) {
             Row row = sheet.getRow(i);
@@ -80,6 +81,7 @@ public class DataParser {
                 .findAny();
     }
 
+    @SuppressWarnings("deprecation")
     private void parseGroups() {
         int groupRow = dates.get(0).getFirstRow() - 1;
         Row row = sheet.getRow(groupRow);
@@ -94,7 +96,7 @@ public class DataParser {
             }
             emptyColumnCounter = 0;
 
-            String cellValue = null;
+            String cellValue;
             if (CellType.STRING.getCode() == cell.getCellType())
                 cellValue = cell.getStringCellValue();
             else if (CellType.NUMERIC.getCode() == cell.getCellType())
