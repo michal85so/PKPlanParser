@@ -28,5 +28,7 @@ public class Main {
         dates.stream().forEach(currentSession::save);
         transaction.commit();
         currentSession.close();
+
+        System.exit(0);
     }
 }

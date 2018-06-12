@@ -46,6 +46,7 @@ public class DataParser {
         dates.stream().forEach(logger::debug);
         groups.stream().forEach(logger::debug);
         lectures.stream().forEach(logger::debug);
+        hours.values().stream().forEach(logger::warn);
     }
 
     private void parseDates() {
@@ -152,9 +153,7 @@ public class DataParser {
                                 lectures.add(lecture);
                             }
                             else {
-                                logger.warn(value);
-                                System.out.println(value);
-//                                throw new RuntimeException("Lecture is not in the merged regions, probably contains only one cell. Ensure that is correct size. Cell value: " + value);
+                                logger.warn(value + " row " + row.getRowNum() + " column " + cell.getColumnIndex());
                             }
                         }
                     }
