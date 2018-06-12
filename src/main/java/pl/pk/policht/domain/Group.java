@@ -11,7 +11,7 @@ import javax.persistence.Id;
 @Setter
 @Getter
 @ToString
-@Entity
+@Entity(name = "group_name")
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

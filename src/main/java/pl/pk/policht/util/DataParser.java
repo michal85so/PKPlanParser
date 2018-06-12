@@ -1,5 +1,6 @@
 package pl.pk.policht.util;
 
+import org.apache.log4j.Logger;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
@@ -15,6 +16,8 @@ import java.time.ZoneId;
 import java.util.*;
 
 public class DataParser {
+    private static final Logger logger = Logger.getLogger(DataParser.class);
+
     private Sheet sheet;
     private List<CellRangeAddress> mergedRegions;
     private List<Date> dates = new ArrayList<>();
@@ -36,13 +39,13 @@ public class DataParser {
         parseGroups();
         parseHours();
         parseLectures();
-//        showResults();
+        showResults();
     }
 
     private void showResults() {
-        dates.stream().forEach(System.out::println);
-        groups.stream().forEach(System.out::println);
-        lectures.stream().forEach(System.out::println);
+        dates.stream().forEach(logger::debug);
+        groups.stream().forEach(logger::debug);
+        lectures.stream().forEach(logger::debug);
     }
 
     private void parseDates() {
@@ -149,6 +152,7 @@ public class DataParser {
                                 lectures.add(lecture);
                             }
                             else {
+                                logger.warn(value);
                                 System.out.println(value);
 //                                throw new RuntimeException("Lecture is not in the merged regions, probably contains only one cell. Ensure that is correct size. Cell value: " + value);
                             }
