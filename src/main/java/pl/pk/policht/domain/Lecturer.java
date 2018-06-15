@@ -7,6 +7,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @RequiredArgsConstructor
+@NoArgsConstructor
 @ToString
 @Entity
 public class Lecturer {

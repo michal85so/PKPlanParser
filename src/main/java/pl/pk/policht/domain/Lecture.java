@@ -2,34 +2,40 @@ package pl.pk.policht.domain;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
-@RequiredArgsConstructor
+@NoArgsConstructor
 @ToString
 @Entity
 public class Lecture {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
-    @NonNull
     private String name;
     private LectureType lectureType;
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    private LocalTime startTime;
+    private LocalTime endTime;
+    private LocalDate localDate;
+    @OneToOne(cascade = CascadeType.ALL)
+    private Lecturer lecturer;
+    @OneToOne(cascade = CascadeType.ALL)
+    private ClassRoom classRoom;
+    @ManyToMany(cascade = CascadeType.ALL)
     private List<Group> groups = new ArrayList<>();
+    @Transient
     private List<Hour> hours = new ArrayList<>();
 
-    enum LectureType {
+    public enum LectureType {
         Wykład,
         Ćwiczenia,
-        Laboratorium
+        Laboratorium,
+        L
     }
 }

@@ -8,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
 @RequiredArgsConstructor
+@NoArgsConstructor
 @Setter
 @Getter
 @ToString

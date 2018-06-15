@@ -11,8 +11,9 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @RequiredArgsConstructor
+@NoArgsConstructor
 @ToString
-@Entity
+@Entity(name = "lectures_date")
 public class Date {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

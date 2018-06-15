@@ -6,10 +6,8 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
+import pl.pk.policht.domain.*;
 import pl.pk.policht.domain.Date;
-import pl.pk.policht.domain.Group;
-import pl.pk.policht.domain.Hour;
-import pl.pk.policht.domain.Lecture;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -24,10 +22,13 @@ public class DataParser {
     private List<Group> groups = new ArrayList<>();
     private Map<Date, List<Hour>> hours = new HashMap<>();
     private List<Lecture> lectures = new ArrayList<>();
+    private Map<String, ClassRoom> classRooms = new HashMap<>();
+    private Map<String, Lecturer> lecturers = new HashMap<>();
 
     public List<Date> getDates() {
         return dates;
     }
+    public List<Lecture> getLectures() { return lectures; }
 
     public DataParser(Sheet sheet) {
         this.sheet = sheet;
@@ -46,7 +47,7 @@ public class DataParser {
         dates.forEach(logger::debug);
         groups.forEach(logger::debug);
         lectures.forEach(logger::debug);
-        hours.values().forEach(logger::warn);
+        hours.values().forEach(logger::info);
     }
 
     @SuppressWarnings("deprecation")
@@ -140,7 +141,7 @@ public class DataParser {
                         if (value != null && !value.isEmpty()) {
                             Optional<CellRangeAddress> mergedRegion = checkIsInMergedColumnRegions(dateCurrentRow, groupCurrentColumn);
                             if (mergedRegion.isPresent()) {
-                                Lecture lecture = new Lecture(value);
+                                Lecture lecture = parseLectureValue(value);
                                 CellRangeAddress region = mergedRegion.get();
                                 for (int regionCurrentRow = region.getFirstRow(); regionCurrentRow <= region.getLastRow(); regionCurrentRow++) {
                                     Hour hour = hours.get(date).get(regionCurrentRow - dateCurrentRow);
@@ -162,5 +163,33 @@ public class DataParser {
                 }
             }
         }
+    }
+
+    private Lecture parseLectureValue(String text) {
+        Lecture lecture = new Lecture();
+        String[] strings = text.split("\\r?\\n");
+        int i = 0;
+        lecture.setName(strings[i++]);
+
+        for (Lecture.LectureType type : Lecture.LectureType.values()) {
+            if (type.name().equalsIgnoreCase(strings[i])) {
+                lecture.setLectureType(type);
+                i++;
+            }
+        }
+
+        if (lecturers.get(strings[i]) == null) {
+            Lecturer lecturer = new Lecturer(strings[i]);
+            lecturers.put(lecturer.getName(), lecturer);
+        }
+        lecture.setLecturer(lecturers.get(strings[i++]));
+        if (strings.length > i) {
+            if (classRooms.get(strings[i]) == null) {
+                ClassRoom classRoom = new ClassRoom(strings[i]);
+                classRooms.put(classRoom.getName(), classRoom);
+            }
+            lecture.setClassRoom(classRooms.get(strings[i]));
+        }
+        return lecture;
     }
 }
