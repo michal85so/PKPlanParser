@@ -20,7 +20,7 @@ public class DataParser {
     private List<CellRangeAddress> mergedRegions;
     private List<Date> dates = new ArrayList<>();
     private List<Group> groups = new ArrayList<>();
-    private Map<Date, List<Hour>> hours = new HashMap<>();
+    private Map<Date, Map<Integer, Hour>> hours = new HashMap<>();
     private List<Lecture> lectures = new ArrayList<>();
     private Map<String, ClassRoom> classRooms = new HashMap<>();
     private Map<String, Lecturer> lecturers = new HashMap<>();
@@ -119,11 +119,11 @@ public class DataParser {
     private void parseHours() {
         final int columnWithHours = 1;
         for (Date date : dates) {
-            hours.put(date, new ArrayList<>());
+            hours.put(date, new HashMap<>());
             for (int hourCurrentRow = date.getFirstRow(); hourCurrentRow <= date.getLastRow(); hourCurrentRow++) {
                 Row row = sheet.getRow(hourCurrentRow);
                 Cell cell = row.getCell(columnWithHours);
-                hours.get(date).add(new Hour(cell.getStringCellValue(), hourCurrentRow));
+                hours.get(date).put(hourCurrentRow, new Hour(cell.getStringCellValue(), hourCurrentRow));
             }
         }
     }
@@ -144,7 +144,7 @@ public class DataParser {
                                 Lecture lecture = parseLectureValue(value);
                                 CellRangeAddress region = mergedRegion.get();
                                 for (int regionCurrentRow = region.getFirstRow(); regionCurrentRow <= region.getLastRow(); regionCurrentRow++) {
-                                    Hour hour = hours.get(date).get(regionCurrentRow - dateCurrentRow);
+                                    Hour hour = hours.get(date).get(regionCurrentRow);
                                     lecture.getHours().add(hour);
                                 }
                                 for (int regionCurrentColumn = region.getFirstColumn(); regionCurrentColumn <= region.getLastColumn(); regionCurrentColumn++) {
@@ -153,6 +153,8 @@ public class DataParser {
                                             lecture.getGroups().add(innerGroup);
                                     }
                                 }
+                                lecture.setLocalDate(date.getDate());
+                                lecture.calculateStartEndTime();
                                 lectures.add(lecture);
                             }
                             else {
