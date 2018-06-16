@@ -25,9 +25,6 @@ public class DataParser {
     private Map<String, ClassRoom> classRooms = new HashMap<>();
     private Map<String, Lecturer> lecturers = new HashMap<>();
 
-    public List<Date> getDates() {
-        return dates;
-    }
     public List<Lecture> getLectures() { return lectures; }
 
     public DataParser(Sheet sheet) {

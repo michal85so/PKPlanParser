@@ -7,8 +7,14 @@ import java.io.*;
 
 public class FileConnector {
 
+    private String path;
+
+    public FileConnector(String path) {
+        this.path = path;
+    }
+
     public Sheet connectAndGetSheet() {
-        try (BufferedInputStream excelFile = new BufferedInputStream(new FileInputStream(new File("plan.xls")))) {
+        try (BufferedInputStream excelFile = new BufferedInputStream(new FileInputStream(new File(path)))) {
             HSSFWorkbook workbook = new HSSFWorkbook(excelFile);
             return workbook.getSheetAt(0);
         } catch (FileNotFoundException e) {

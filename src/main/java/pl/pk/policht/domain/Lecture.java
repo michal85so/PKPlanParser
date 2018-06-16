@@ -21,6 +21,7 @@ public class Lecture {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String name;
+    @Enumerated(EnumType.STRING)
     private LectureType lectureType;
     private LocalTime startTime;
     private LocalTime endTime;
