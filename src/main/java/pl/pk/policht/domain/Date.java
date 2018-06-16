@@ -2,10 +2,6 @@ package pl.pk.policht.domain;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
 import java.time.LocalDate;
 
 @Getter
@@ -13,11 +9,7 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 @NoArgsConstructor
 @ToString
-@Entity(name = "lectures_date")
 public class Date {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
     @NonNull
     private LocalDate date;
     @NonNull

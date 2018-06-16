@@ -2,10 +2,9 @@ package pl.pk.policht.domain;
 
 import lombok.*;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.HashSet;
+import java.util.Set;
 
 @RequiredArgsConstructor
 @NoArgsConstructor
@@ -13,6 +12,7 @@ import javax.persistence.Id;
 @Getter
 @ToString
 @Entity(name = "group_name")
+@EqualsAndHashCode(of = "name")
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,4 +23,6 @@ public class Group {
     private int firstCol;
     @NonNull
     private int lastCol;
+    @ManyToMany
+    private Set<Lecture> lectures = new HashSet<>();
 }

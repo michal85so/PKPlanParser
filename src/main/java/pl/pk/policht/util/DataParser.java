@@ -24,6 +24,7 @@ public class DataParser {
     private List<Lecture> lectures = new ArrayList<>();
     private Map<String, ClassRoom> classRooms = new HashMap<>();
     private Map<String, Lecturer> lecturers = new HashMap<>();
+    private Map<String, Group> lectureGroups = new HashMap<>();
 
     public List<Lecture> getLectures() { return lectures; }
 
@@ -146,8 +147,13 @@ public class DataParser {
                                 }
                                 for (int regionCurrentColumn = region.getFirstColumn(); regionCurrentColumn <= region.getLastColumn(); regionCurrentColumn++) {
                                     for (Group innerGroup : groups) {
-                                        if (regionCurrentColumn >= innerGroup.getFirstCol() && regionCurrentColumn <= innerGroup.getLastCol())
-                                            lecture.getGroups().add(innerGroup);
+                                        if (regionCurrentColumn >= innerGroup.getFirstCol() && regionCurrentColumn <= innerGroup.getLastCol()) {
+                                            if (lectureGroups.get(innerGroup.getName()) == null) {
+                                                lectureGroups.put(innerGroup.getName(), innerGroup);
+                                                innerGroup.getLectures().add(lecture);
+                                            }
+                                            lecture.getGroups().add(lectureGroups.get(innerGroup.getName()));
+                                        }
                                     }
                                 }
                                 lecture.setLocalDate(date.getDate());

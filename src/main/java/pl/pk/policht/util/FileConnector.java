@@ -3,7 +3,10 @@ package pl.pk.policht.util;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Sheet;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 public class FileConnector {
 
@@ -17,8 +20,6 @@ public class FileConnector {
         try (BufferedInputStream excelFile = new BufferedInputStream(new FileInputStream(new File(path)))) {
             HSSFWorkbook workbook = new HSSFWorkbook(excelFile);
             return workbook.getSheetAt(0);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
