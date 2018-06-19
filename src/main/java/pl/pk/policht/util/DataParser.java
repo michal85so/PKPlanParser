@@ -6,6 +6,7 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
+import pl.pk.policht.dao.LectureNameDao;
 import pl.pk.policht.dao.LectureTypeDao;
 import pl.pk.policht.dao.LecturerDao;
 import pl.pk.policht.domain.*;
@@ -22,6 +23,7 @@ public class DataParser {
     private List<CellRangeAddress> mergedRegions;
     private LecturerDao lecturerDao;
     private LectureTypeDao lectureTypeDao;
+    private LectureNameDao lectureNameDao;
     private List<Date> dates = new ArrayList<>();
     private List<Group> groups = new ArrayList<>();
     private Map<Date, Map<Integer, Hour>> hours = new HashMap<>();
@@ -32,11 +34,12 @@ public class DataParser {
 
     public List<Lecture> getLectures() { return lectures; }
 
-    public DataParser(Sheet sheet, LecturerDao lecturerDao, LectureTypeDao lectureTypeDao) {
+    public DataParser(Sheet sheet, LecturerDao lecturerDao, LectureTypeDao lectureTypeDao, LectureNameDao lectureNameDao) {
         this.sheet = sheet;
         mergedRegions = sheet.getMergedRegions();
         this.lecturerDao = lecturerDao;
         this.lectureTypeDao = lectureTypeDao;
+        this.lectureNameDao = lectureNameDao;
     }
 
     public void parse() {
@@ -180,14 +183,11 @@ public class DataParser {
         Lecture lecture = new Lecture();
         String[] strings = text.split("\\r?\\n");
         int i = 0;
-        lecture.setName(strings[i++]);
+        LectureName lectureName = lectureNameDao.findByName(strings[i++]);
+        if (lectureName != null) {
+            lecture.setLectureName(lectureName);
+        }
 
-//        for (Lecture.LectureType type : Lecture.LectureType.values()) {
-//            if (type.name().equalsIgnoreCase(strings[i])) {
-//                lecture.setLectureType(type);
-//                i++;
-//            }
-//        }
         LectureType lectureType = lectureTypeDao.findByName(strings[i]);
         if (lectureType != null) {
             lecture.setLectureType(lectureType);
