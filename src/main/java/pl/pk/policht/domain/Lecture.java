@@ -21,7 +21,8 @@ public class Lecture {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private int id;
     private String name;
-    @Enumerated(EnumType.STRING)
+//    @Enumerated(EnumType.STRING)
+    @ManyToOne(cascade = CascadeType.ALL)
     private LectureType lectureType;
     private LocalTime startTime;
     private LocalTime endTime;
@@ -39,13 +40,14 @@ public class Lecture {
     private Set<Group> groups = new HashSet<>();
     @Transient
     private List<Hour> hours = new ArrayList<>();
+    private String note;
 
-    public enum LectureType {
-        Wykład,
-        Ćwiczenia,
-        Laboratorium,
-        L
-    }
+//    public enum LectureType {
+//        Wykład,
+//        Ćwiczenia,
+//        Laboratorium,
+//        L
+//    }
 
     public void calculateStartEndTime() {
         startTime = hours.get(0).getStartTime();

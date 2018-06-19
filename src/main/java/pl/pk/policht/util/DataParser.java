@@ -6,6 +6,7 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
+import pl.pk.policht.dao.LectureTypeDao;
 import pl.pk.policht.dao.LecturerDao;
 import pl.pk.policht.domain.*;
 import pl.pk.policht.domain.Date;
@@ -20,6 +21,7 @@ public class DataParser {
     private Sheet sheet;
     private List<CellRangeAddress> mergedRegions;
     private LecturerDao lecturerDao;
+    private LectureTypeDao lectureTypeDao;
     private List<Date> dates = new ArrayList<>();
     private List<Group> groups = new ArrayList<>();
     private Map<Date, Map<Integer, Hour>> hours = new HashMap<>();
@@ -30,10 +32,11 @@ public class DataParser {
 
     public List<Lecture> getLectures() { return lectures; }
 
-    public DataParser(Sheet sheet, LecturerDao lecturerDao) {
+    public DataParser(Sheet sheet, LecturerDao lecturerDao, LectureTypeDao lectureTypeDao) {
         this.sheet = sheet;
         mergedRegions = sheet.getMergedRegions();
         this.lecturerDao = lecturerDao;
+        this.lectureTypeDao = lectureTypeDao;
     }
 
     public void parse() {
@@ -179,11 +182,16 @@ public class DataParser {
         int i = 0;
         lecture.setName(strings[i++]);
 
-        for (Lecture.LectureType type : Lecture.LectureType.values()) {
-            if (type.name().equalsIgnoreCase(strings[i])) {
-                lecture.setLectureType(type);
-                i++;
-            }
+//        for (Lecture.LectureType type : Lecture.LectureType.values()) {
+//            if (type.name().equalsIgnoreCase(strings[i])) {
+//                lecture.setLectureType(type);
+//                i++;
+//            }
+//        }
+        LectureType lectureType = lectureTypeDao.findByName(strings[i]);
+        if (lectureType != null) {
+            lecture.setLectureType(lectureType);
+            i++;
         }
 
         if (lecturers.get(strings[i]) == null) {
@@ -197,11 +205,17 @@ public class DataParser {
             lecture.setLecturer(lecturers.get(strings[i++]));
         if (strings.length > i) {
             if (classRooms.get(strings[i]) == null) {
-                ClassRoom classRoom = new ClassRoom(strings[i]);
+                ClassRoom classRoom = new ClassRoom(strings[i++]);
                 classRooms.put(classRoom.getName(), classRoom);
+                lecture.setClassRoom(classRoom);
             }
-            lecture.setClassRoom(classRooms.get(strings[i]));
+            else
+                lecture.setClassRoom(classRooms.get(strings[i++]));
         }
+        if (strings.length > i) {
+            lecture.setNote(strings[i]);
+        }
+
         return lecture;
     }
 }

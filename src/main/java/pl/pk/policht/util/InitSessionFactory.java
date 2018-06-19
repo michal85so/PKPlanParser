@@ -15,6 +15,7 @@ public class InitSessionFactory {
         cfg.addAnnotatedClass(Group.class);
         cfg.addAnnotatedClass(Lecture.class);
         cfg.addAnnotatedClass(Lecturer.class);
+        cfg.addAnnotatedClass(LectureType.class);
         cfg.addAnnotatedClass(ClassRoom.class);
         sessionFactory = cfg.buildSessionFactory();
     }

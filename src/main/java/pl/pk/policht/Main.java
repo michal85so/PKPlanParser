@@ -5,6 +5,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import pl.pk.policht.dao.LectureDao;
+import pl.pk.policht.dao.LectureTypeDao;
 import pl.pk.policht.dao.LecturerDao;
 import pl.pk.policht.util.DataParser;
 import pl.pk.policht.util.FileConnector;
@@ -22,8 +23,9 @@ public class Main {
         Transaction transaction = currentSession.beginTransaction();
 
         LecturerDao lecturerDao = new LecturerDao(currentSession);
+        LectureTypeDao lectureTypeDao = new LectureTypeDao(currentSession);
 
-        DataParser dataParser = new DataParser(sheet, lecturerDao);
+        DataParser dataParser = new DataParser(sheet, lecturerDao, lectureTypeDao);
         dataParser.parse();
 
         new LectureDao(currentSession).save(dataParser.getLectures());
