@@ -17,4 +17,6 @@ public class Lecturer {
     @NonNull
     @Column(nullable = false)
     private String name;
+    private String title;
+    private String shortcut;
 }

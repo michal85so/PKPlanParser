@@ -6,6 +6,7 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
+import pl.pk.policht.dao.LecturerDao;
 import pl.pk.policht.domain.*;
 import pl.pk.policht.domain.Date;
 
@@ -18,6 +19,7 @@ public class DataParser {
 
     private Sheet sheet;
     private List<CellRangeAddress> mergedRegions;
+    private LecturerDao lecturerDao;
     private List<Date> dates = new ArrayList<>();
     private List<Group> groups = new ArrayList<>();
     private Map<Date, Map<Integer, Hour>> hours = new HashMap<>();
@@ -28,9 +30,10 @@ public class DataParser {
 
     public List<Lecture> getLectures() { return lectures; }
 
-    public DataParser(Sheet sheet) {
+    public DataParser(Sheet sheet, LecturerDao lecturerDao) {
         this.sheet = sheet;
         mergedRegions = sheet.getMergedRegions();
+        this.lecturerDao = lecturerDao;
     }
 
     public void parse() {
@@ -184,10 +187,14 @@ public class DataParser {
         }
 
         if (lecturers.get(strings[i]) == null) {
-            Lecturer lecturer = new Lecturer(strings[i]);
-            lecturers.put(lecturer.getName(), lecturer);
+            Lecturer byName = lecturerDao.findByName(strings[i]);
+            if (byName != null){
+                lecturers.put(byName.getName(), byName);
+                lecture.setLecturer(byName);
+            }
         }
-        lecture.setLecturer(lecturers.get(strings[i++]));
+        else
+            lecture.setLecturer(lecturers.get(strings[i++]));
         if (strings.length > i) {
             if (classRooms.get(strings[i]) == null) {
                 ClassRoom classRoom = new ClassRoom(strings[i]);

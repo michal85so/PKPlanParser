@@ -26,7 +26,7 @@ public class Lecture {
     private LocalTime startTime;
     private LocalTime endTime;
     private LocalDate localDate;
-    @OneToOne(cascade = CascadeType.ALL)
+    @ManyToOne(cascade = CascadeType.ALL)
     private Lecturer lecturer;
     @OneToOne(cascade = CascadeType.ALL)
     private ClassRoom classRoom;
