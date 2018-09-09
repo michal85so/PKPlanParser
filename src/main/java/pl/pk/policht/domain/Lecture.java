@@ -13,7 +13,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString
+@ToString(exclude = "group")
 @Entity
 @EqualsAndHashCode(of = "id")
 public class Lecture {
@@ -27,6 +27,7 @@ public class Lecture {
     private LocalTime startTime;
     private LocalTime endTime;
     private LocalDate localDate;
+    private String dayOfWeek;
     @ManyToOne(cascade = CascadeType.ALL)
     private Lecturer lecturer;
     @OneToOne(cascade = CascadeType.ALL)

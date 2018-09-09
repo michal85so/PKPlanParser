@@ -10,7 +10,7 @@ import java.util.Set;
 @NoArgsConstructor
 @Setter
 @Getter
-@ToString
+//@ToString
 @Entity(name = "group_name")
 @EqualsAndHashCode(of = "name")
 public class Group {

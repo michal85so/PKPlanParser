@@ -2,17 +2,15 @@ package pl.pk.policht.domain;
 
 import lombok.*;
 
-import java.time.LocalDate;
-
 @Getter
 @Setter
 @RequiredArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(of = "date")
+@EqualsAndHashCode(of = "day")
 @ToString
-public class Date {
+public class DayOfWeek {
     @NonNull
-    private LocalDate date;
+    private String day;
     @NonNull
     private int firstRow;
     @NonNull

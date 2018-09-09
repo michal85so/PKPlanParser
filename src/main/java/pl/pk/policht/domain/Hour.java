@@ -33,6 +33,8 @@ public class Hour {
     private void parseRangeToStartEndTime(String range) {
         range = range.replace(".",":");
         String[] strings = range.split("-");
+        if (strings.length < 2)
+            return;
         String[] startTimeStringArray = strings[0].split(":");
         String[] endTimeStringArray = strings[1].split(":");
         startTime = LocalTime.of(Integer.parseInt(startTimeStringArray[0].trim()), Integer.parseInt(startTimeStringArray[1].trim()));

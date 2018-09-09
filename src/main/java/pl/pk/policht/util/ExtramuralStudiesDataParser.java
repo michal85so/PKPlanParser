@@ -16,41 +16,25 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
 
-public class DataParser {
-    private static final Logger logger = Logger.getLogger(DataParser.class);
+public class ExtramuralStudiesDataParser extends AbstractDataParser {
+    private static final Logger logger = Logger.getLogger(ExtramuralStudiesDataParser.class);
 
-    private Sheet sheet;
-    private List<CellRangeAddress> mergedRegions;
-    private LecturerDao lecturerDao;
-    private LectureTypeDao lectureTypeDao;
-    private LectureNameDao lectureNameDao;
     private List<Date> dates = new ArrayList<>();
-    private List<Group> groups = new ArrayList<>();
     private Map<Date, Map<Integer, Hour>> hours = new HashMap<>();
-    private List<Lecture> lectures = new ArrayList<>();
-    private Map<String, ClassRoom> classRooms = new HashMap<>();
-    private Map<String, Lecturer> lecturers = new HashMap<>();
-    private Map<String, Group> lectureGroups = new HashMap<>();
 
-    public List<Lecture> getLectures() { return lectures; }
-
-    public DataParser(Sheet sheet, LecturerDao lecturerDao, LectureTypeDao lectureTypeDao, LectureNameDao lectureNameDao) {
-        this.sheet = sheet;
-        mergedRegions = sheet.getMergedRegions();
-        this.lecturerDao = lecturerDao;
-        this.lectureTypeDao = lectureTypeDao;
-        this.lectureNameDao = lectureNameDao;
+    public ExtramuralStudiesDataParser(Sheet sheet, LecturerDao lecturerDao, LectureTypeDao lectureTypeDao, LectureNameDao lectureNameDao) {
+        super(sheet, lecturerDao, lectureTypeDao, lectureNameDao);
     }
 
     public void parse() {
         parseDates();
-        parseGroups();
+        parseGroups(dates.get(0).getFirstRow() - 1);
         parseHours();
         parseLectures();
         showResults();
     }
 
-    private void showResults() {
+    void showResults() {
         dates.forEach(logger::debug);
         groups.forEach(logger::debug);
         lectures.forEach(logger::debug);
@@ -68,58 +52,6 @@ public class DataParser {
                 Optional<CellRangeAddress> rangeAddress = checkDateIsInMergedRowRegions(row.getRowNum());
                 rangeAddress.ifPresent(address -> dates.add(new Date(localDate, address.getFirstRow(), address.getLastRow())));
             }
-
-        }
-    }
-
-    private Optional<CellRangeAddress> checkDateIsInMergedRowRegions(int row) {
-        return mergedRegions.parallelStream()
-                .filter(region ->
-                        0 == region.getFirstColumn()
-                                && row >= region.getFirstRow()
-                                && row <= region.getLastRow())
-                .findAny();
-    }
-
-    private Optional<CellRangeAddress> checkIsInMergedColumnRegions(int row, int column) {
-        return mergedRegions.parallelStream()
-                .filter(region -> row == region.getFirstRow()
-                        && column >= region.getFirstColumn()
-                        && column <= region.getLastColumn())
-                .findAny();
-    }
-
-    @SuppressWarnings("deprecation")
-    private void parseGroups() {
-        int groupRow = dates.get(0).getFirstRow() - 1;
-        Row row = sheet.getRow(groupRow);
-        int emptyColumnCounter = 0;
-        for (int currentColumn = 0;; currentColumn++) {
-            Cell cell = row.getCell(currentColumn);
-            if (cell == null) {
-                emptyColumnCounter++;
-                if (emptyColumnCounter == 5)
-                    break;
-                continue;
-            }
-            emptyColumnCounter = 0;
-
-            String cellValue;
-            if (CellType.STRING.getCode() == cell.getCellType())
-                cellValue = cell.getStringCellValue();
-            else if (CellType.NUMERIC.getCode() == cell.getCellType())
-                cellValue = String.valueOf(cell.getNumericCellValue());
-            else
-                continue;
-
-            if ("sobota".equalsIgnoreCase(cellValue) || "niedziela".equalsIgnoreCase(cellValue))
-                continue;
-
-            final String value = cellValue;
-            Optional<CellRangeAddress> cellMergedRegion = checkIsInMergedColumnRegions(row.getRowNum(), cell.getColumnIndex());
-            cellMergedRegion.ifPresent(mergedRegion -> groups.add(new Group(value, mergedRegion.getFirstColumn(), mergedRegion.getLastColumn())));
-            if (!cellMergedRegion.isPresent())
-                groups.add(new Group(value, cell.getColumnIndex(), cell.getColumnIndex()));
         }
     }
 
