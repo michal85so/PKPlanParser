@@ -6,11 +6,12 @@ import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.util.CellRangeAddress;
+import pl.pk.policht.dao.LectureDao;
 import pl.pk.policht.dao.LectureNameDao;
 import pl.pk.policht.dao.LectureTypeDao;
 import pl.pk.policht.dao.LecturerDao;
-import pl.pk.policht.domain.*;
 import pl.pk.policht.domain.Date;
+import pl.pk.policht.domain.*;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -18,12 +19,14 @@ import java.util.*;
 
 public class ExtramuralStudiesDataParser extends AbstractDataParser {
     private static final Logger logger = Logger.getLogger(ExtramuralStudiesDataParser.class);
+    private final LectureDao lectureDao;
 
     private List<Date> dates = new ArrayList<>();
     private Map<Date, Map<Integer, Hour>> hours = new HashMap<>();
 
-    public ExtramuralStudiesDataParser(Sheet sheet, LecturerDao lecturerDao, LectureTypeDao lectureTypeDao, LectureNameDao lectureNameDao) {
+    public ExtramuralStudiesDataParser(Sheet sheet, LecturerDao lecturerDao, LectureTypeDao lectureTypeDao, LectureNameDao lectureNameDao, LectureDao lectureDao) {
         super(sheet, lecturerDao, lectureTypeDao, lectureNameDao);
+        this.lectureDao = lectureDao;
     }
 
     public void parse() {
@@ -37,16 +40,18 @@ public class ExtramuralStudiesDataParser extends AbstractDataParser {
     void showResults() {
         dates.forEach(logger::debug);
         groups.forEach(logger::debug);
-        lectures.forEach(logger::debug);
         hours.values().forEach(logger::info);
+        lectures.forEach(logger::debug);
     }
 
     @SuppressWarnings("deprecation")
     private void parseDates() {
-        for (int i = 0; i < sheet.getPhysicalNumberOfRows(); i++) {
-            Row row = sheet.getRow(i);
+        for (int rowIterator = 0; rowIterator < sheet.getPhysicalNumberOfRows(); rowIterator++) {
+            Row row = sheet.getRow(rowIterator);
+
             if (row == null) continue;
-            Cell cell = row.getCell(0);
+
+            Cell cell = row.getCell(DATE_COLUMN_POSITION);
             if (cell != null && CellType.NUMERIC.getCode() == cell.getCellType()) {
                 LocalDate localDate = cell.getDateCellValue().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
                 Optional<CellRangeAddress> rangeAddress = checkDateIsInMergedRowRegions(row.getRowNum());
@@ -76,33 +81,13 @@ public class ExtramuralStudiesDataParser extends AbstractDataParser {
                         Cell cell = row.getCell(groupCurrentColumn);
                         if (cell == null)
                             continue;
-                        String value = cell.getStringCellValue();
-                        if (value != null && !value.isEmpty()) {
+                        String cellValue = cell.getStringCellValue();
+                        if (cellValue != null && !cellValue.isEmpty()) {
                             Optional<CellRangeAddress> mergedRegion = checkIsInMergedColumnRegions(dateCurrentRow, groupCurrentColumn);
                             if (mergedRegion.isPresent()) {
-                                Lecture lecture = parseLectureValue(value);
-                                CellRangeAddress region = mergedRegion.get();
-                                for (int regionCurrentRow = region.getFirstRow(); regionCurrentRow <= region.getLastRow(); regionCurrentRow++) {
-                                    Hour hour = hours.get(date).get(regionCurrentRow);
-                                    lecture.getHours().add(hour);
-                                }
-                                for (int regionCurrentColumn = region.getFirstColumn(); regionCurrentColumn <= region.getLastColumn(); regionCurrentColumn++) {
-                                    for (Group innerGroup : groups) {
-                                        if (regionCurrentColumn >= innerGroup.getFirstCol() && regionCurrentColumn <= innerGroup.getLastCol()) {
-                                            if (lectureGroups.get(innerGroup.getName()) == null) {
-                                                lectureGroups.put(innerGroup.getName(), innerGroup);
-                                                innerGroup.getLectures().add(lecture);
-                                            }
-                                            lecture.getGroups().add(lectureGroups.get(innerGroup.getName()));
-                                        }
-                                    }
-                                }
-                                lecture.setLocalDate(date.getDate());
-                                lecture.calculateStartEndTime();
-                                lectures.add(lecture);
-                            }
-                            else {
-                                logger.warn(value + " row " + row.getRowNum() + " column " + cell.getColumnIndex());
+                                createLecture(date, cellValue, mergedRegion.get());
+                            } else {
+                                logger.warn(cellValue + " row " + row.getRowNum() + " column " + cell.getColumnIndex());
                             }
                         }
                     }
@@ -111,43 +96,78 @@ public class ExtramuralStudiesDataParser extends AbstractDataParser {
         }
     }
 
+    private void createLecture(Date date, String value, CellRangeAddress region) {
+        Lecture lecture = parseLectureValue(value);
+        for (int regionCurrentRow = region.getFirstRow(); regionCurrentRow <= region.getLastRow(); regionCurrentRow++) {
+            Hour hour = hours.get(date).get(regionCurrentRow);
+            lecture.getHours().add(hour);
+        }
+        for (int regionCurrentColumn = region.getFirstColumn(); regionCurrentColumn <= region.getLastColumn(); regionCurrentColumn++) {
+            int cc = regionCurrentColumn;
+            groups.stream()
+                    .filter(group -> cc >= group.getFirstCol() && cc <= group.getLastCol())
+                    .forEach(group -> {
+                        if (lectureGroups.get(group.getName()) == null) {
+                            lectureGroups.put(group.getName(), group);
+                            group.getLectures().add(lecture);
+                        }
+                        lecture.getGroups().add(lectureGroups.get(group.getName()));
+                    });
+        }
+        lecture.setLocalDate(date.getDate());
+        lecture.calculateStartEndTime();
+        lectures.add(lecture);
+        lectureDao.save(lecture);
+    }
+
     private Lecture parseLectureValue(String text) {
         Lecture lecture = new Lecture();
         String[] strings = text.split("\\r?\\n");
         int i = 0;
-        LectureName lectureName = lectureNameDao.findByName(strings[i++]);
-        if (lectureName != null) {
-            lecture.setLectureName(lectureName);
-        }
 
-        LectureType lectureType = lectureTypeDao.findByName(strings[i]);
-        if (lectureType != null) {
-            lecture.setLectureType(lectureType);
-            i++;
-        }
-
-        if (lecturers.get(strings[i]) == null) {
-            Lecturer byName = lecturerDao.findByName(strings[i]);
-            if (byName != null){
-                lecturers.put(byName.getName(), byName);
-                lecture.setLecturer(byName);
-            }
-        }
-        else
-            lecture.setLecturer(lecturers.get(strings[i++]));
-        if (strings.length > i) {
-            if (classRooms.get(strings[i]) == null) {
-                ClassRoom classRoom = new ClassRoom(strings[i++]);
-                classRooms.put(classRoom.getName(), classRoom);
-                lecture.setClassRoom(classRoom);
-            }
-            else
-                lecture.setClassRoom(classRooms.get(strings[i++]));
-        }
-        if (strings.length > i) {
-            lecture.setNote(strings[i]);
-        }
+        lecture.setLectureName(getLectureName(strings[i++]));
+        lecture.setLectureType(getLectureType(strings[i++]));
+        lecture.setLecturer(getLecturer(strings[i++]));
+        lecture.setClassRoom(getClassRoom(strings[i]));
 
         return lecture;
+    }
+
+    private LectureName getLectureName(String string) {
+        LectureName existingLectureName = lectureNameDao.findByName(string);
+        if (existingLectureName != null) {
+            return existingLectureName;
+        }
+        LectureName lectureName = new LectureName();
+        lectureName.setName(string);
+        return lectureName;
+    }
+
+    private LectureType getLectureType(String string) {
+        return lectureTypeDao.findByName(string);
+    }
+
+    private Lecturer getLecturer(String string) {
+        Lecturer lecturer = lecturers.get(string);
+        if (lecturer != null)
+            return lecturer;
+
+        lecturer = lecturerDao.findByName(string);
+        if (lecturer != null) {
+            lecturers.put(lecturer.getName(), lecturer);
+            return lecturer;
+        }
+        logger.error("there is no lecturer like: " + string);
+//        throw new Exception("there is no lecturer like: " + string);
+        return null;
+    }
+
+    private ClassRoom getClassRoom(String string) {
+        ClassRoom classRoom = classRooms.get(string);
+        if (classRoom != null)
+            return classRoom;
+        classRoom = new ClassRoom(string);
+        classRooms.put(classRoom.getName(), classRoom);
+        return classRoom;
     }
 }

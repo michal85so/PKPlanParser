@@ -10,9 +10,9 @@ import java.util.Set;
 @NoArgsConstructor
 @Setter
 @Getter
-//@ToString
 @Entity(name = "group_name")
 @EqualsAndHashCode(of = "name")
+@ToString(exclude = "lectures")
 public class Group {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

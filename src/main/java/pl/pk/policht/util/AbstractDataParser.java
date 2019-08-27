@@ -16,6 +16,7 @@ import pl.pk.policht.domain.Lecturer;
 import java.util.*;
 
 public abstract class AbstractDataParser {
+    protected static final int DATE_COLUMN_POSITION = 0;
     Sheet sheet;
     List<CellRangeAddress> mergedRegions;
     LecturerDao lecturerDao;
@@ -38,7 +39,7 @@ public abstract class AbstractDataParser {
     Optional<CellRangeAddress> checkDateIsInMergedRowRegions(int row) {
         return mergedRegions.parallelStream()
                 .filter(region ->
-                        0 == region.getFirstColumn()
+                        DATE_COLUMN_POSITION == region.getFirstColumn()
                                 && row >= region.getFirstRow()
                                 && row <= region.getLastRow())
                 .findAny();
@@ -53,7 +54,7 @@ public abstract class AbstractDataParser {
     }
 
     @SuppressWarnings("deprecation")
-    void parseGroups(int groupRow) {
+    protected void parseGroups(int groupRow) {
         Row row = sheet.getRow(groupRow);
         int emptyColumnCounter = 0;
         for (int currentColumn = 0;; currentColumn++) {
@@ -72,6 +73,9 @@ public abstract class AbstractDataParser {
             else if (CellType.NUMERIC.getCode() == cell.getCellType())
                 cellValue = String.valueOf(cell.getNumericCellValue());
             else
+                continue;
+
+            if ("sobota".equalsIgnoreCase(cellValue) || "niedziela".equalsIgnoreCase(cellValue))
                 continue;
 
             final String value = cellValue;

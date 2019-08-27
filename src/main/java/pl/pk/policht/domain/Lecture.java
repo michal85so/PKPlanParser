@@ -13,8 +13,8 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString(exclude = "group")
-@Entity
+@ToString(exclude = "groups")
+@Entity(name = "lecture")
 @EqualsAndHashCode(of = "id")
 public class Lecture {
     @Id
@@ -45,6 +45,6 @@ public class Lecture {
 
     public void calculateStartEndTime() {
         startTime = hours.get(0).getStartTime();
-        endTime = hours.get(hours.size() - 1).getEndTime();
+//        endTime = hours.get(hours.size() - 1).getEndTime();
     }
 }

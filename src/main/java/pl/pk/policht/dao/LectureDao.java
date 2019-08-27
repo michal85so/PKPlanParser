@@ -13,7 +13,11 @@ public class LectureDao {
         this.session = session;
     }
 
-    public void save(List<Lecture> lectures) {
+    public void saveAll(List<Lecture> lectures) {
         lectures.forEach(session::save);
+    }
+
+    public void save(Lecture lecture) {
+        session.save(lecture);
     }
 }
